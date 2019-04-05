@@ -37,21 +37,6 @@ SyphonServer syphonserver;
 String syphon_name = "boilerplate", osc_address = syphon_name;
 Log log;
 
-int n;
-float t1, 
-  t2, 
-  speed1, 
-  speed2, 
-  x1_range1, 
-  x1_range2, 
-  y1_range1, 
-  y1_range2, 
-  x2_range1, 
-  x2_range2, 
-  y2_range1, 
-  y2_range2
-  ;
-
 void settings() {
   size(500, 500, P3D);
 }
@@ -80,33 +65,6 @@ void draw() {
 void drawGraphics() {  
   c.beginDraw();
   c.clear();
-  c.tint(255, 250);
-  c.tint(255, 255);
-  c.stroke(255);
-  c.strokeWeight(5);
-  c.translate (c.width/2, c.height/2);
 
-  for (int i = 0; i < n; i++) {
-    c.line(x1(t1 + i), y1(t1 + i), x2(t2 + i), y2(t2 + i));
-  }
   c.endDraw();
-  t1+=speed1;
-  t2+=speed2;
-}
-
-
-float x1(float t) {
-  return sin(t / 10) * c.width/2 * x1_range1 + sin(t / 3) * c.width/2 * x1_range2;
-}
-
-float y1(float t) {
-  return cos(t / 10) * c.height/2 * y1_range1 + cos(t /3) * c.height/2 *y1_range2;
-}
-
-float x2(float t) {
-  return sin(t / 10) * c.width/2 * x2_range1 + sin(t / 3) * c.width/2 * x2_range2;
-}
-
-float y2(float t) {
-  return cos(t / 10) * c.height/2 * y2_range1 + cos(t /3) * c.height/2 *y2_range2;
 }

@@ -92,91 +92,12 @@ void controlSetup() {
     .setValue(true)
     ;
 
-  // CUSTOM CONTROLS
+  /*  CUSTOM CONTROLS
+      Add your own controls below. Use .setId(1) to make controller
+      reachable by OSC.
+  */
   xoff = 10;
   yoff = 300;
-  cp5.addSlider("n")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(1, 30)
-    .setValue(10)
-    ;
-
-  yoff += cp5.getController("n").getHeight() + 10;
-  cp5.addKnob("speed1")
-    .setPosition(xoff, yoff)
-    .setSize(50, 50)
-    .setRange(-.5, .5)
-    .setValue(.02)
-    ;
-    
-  yoff += cp5.getController("n").getHeight() + 10;
-  cp5.addKnob("x1_range1")
-    .setPosition(xoff, yoff)
-    .setSize(50, 50)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;
-  yoff += 20;
-  cp5.addKnob("x1_range2")
-    .setPosition(xoff, yoff)
-    .setSize(50, 50)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;  
-  yoff += 20;
-  cp5.addSlider("y1_range1")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    .setId(1)
-    ;
-  yoff += 20;
-  cp5.addSlider("y1_range2")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;
-
-  yoff = 330;
-  xoff += 150;
-
-  cp5.addSlider("speed2")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(-.5, .5)
-    .setValue(.02)
-    ;
-  yoff += 20;
-  cp5.addSlider("x2_range1")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;
-  yoff += 20;
-  cp5.addSlider("x2_range2")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;  
-  yoff += 20;
-  cp5.addSlider("y2_range1")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;
-  yoff += 20;
-  cp5.addSlider("y2_range2")
-    .setPosition(xoff, yoff)
-    .setSize(100, 15)
-    .setRange(0., 1.)
-    .setValue(.25)
-    ;
 }
 
 int evalFieldInput1(String in, int current, Controller con) {
