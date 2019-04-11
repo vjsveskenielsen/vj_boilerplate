@@ -15,7 +15,7 @@ void oscEvent(OscMessage theOscMessage) {
   if (str_in.length == 3) {
     if (str_in[1].equals(osc_address) &&
       cp5.getController(str_in[2]) != null &&
-      cp5.getController(str_in[2]).getId() == 1) {
+      cp5.getController(str_in[2]).getId() != -1) {
       Controller con = cp5.getController(str_in[2]);
 
       if (theOscMessage.checkTypetag("i")) {

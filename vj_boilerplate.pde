@@ -3,7 +3,7 @@ This is a boilerplate for creating VJ apps with Processing
 It creates a PGraphics "canvas" named c that you can draw graphics onto,
 and outputs that canvas via Syphon.
 The canvas is rescalable and renamable.
- 
+
 It relies on:
 The Syphon library by Andres Colubri
 The Midibus library by Severin Smith
@@ -23,6 +23,8 @@ OscP5 oscP5;
 ControlP5 cp5;
 Textfield field_cw, field_ch, field_syphon_name, field_osc_port, field_osc_address;
 Button button_ip;
+ScrollableList dropdown_midi;
+Toggle toggle_log_osc, toggle_log_midi, toggle_view_bg;
 Viewport view;
 boolean viewport_show_alpha = false;
 boolean log_midi = true, log_osc = true;
@@ -62,7 +64,7 @@ void draw() {
   log.update();
 }
 
-void drawGraphics() {  
+void drawGraphics() {
   c.beginDraw();
   c.clear();
 

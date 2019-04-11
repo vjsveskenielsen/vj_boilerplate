@@ -4,97 +4,108 @@ void controlSetup() {
   int yoff = 10;
 
   field_cw = cp5.addTextfield("field_cw")
-    .setPosition(xoff, yoff)
-    .setSize(30, 20)
-    .setAutoClear(false)
-    .setText(Integer.toString(cw))
-    .setLabel("width")
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(30, 20)
+  .setAutoClear(false)
+  .setText(Integer.toString(cw))
+  .setLabel("width")
+  .setId(-1)
+  ;
 
   xoff += field_cw.getWidth() + 10;
   field_ch = cp5.addTextfield("field_ch")
-    .setPosition(xoff, yoff)
-    .setSize(30, 20)
-    .setAutoClear(false)
-    .setText(Integer.toString(ch))
-    .setLabel("height")
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(30, 20)
+  .setAutoClear(false)
+  .setText(Integer.toString(ch))
+  .setLabel("height")
+  .setId(-1)
+  ;
+
   xoff += field_ch.getWidth() + 10;
   field_syphon_name = cp5.addTextfield("field_syphon_name")
-    .setPosition(xoff, yoff)
-    .setSize(60, 20)
-    .setAutoClear(false)
-    .setText(syphon_name)
-    .setLabel("syphon name")
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(60, 20)
+  .setAutoClear(false)
+  .setText(syphon_name)
+  .setLabel("syphon name")
+  .setId(-1)
+  ;
 
   xoff += field_syphon_name.getWidth() + 10;
-  cp5.addToggle("viewport_show_alpha")
-    .setPosition(xoff, yoff)
-    .setSize(50, 20)
-    .setValue(viewport_show_alpha)
-    .setLabel("alpha / none")
-    .setMode(ControlP5.SWITCH)
-    ;
+  toggle_view_bg = cp5.addToggle("viewport_show_alpha")
+  .setPosition(xoff, yoff)
+  .setSize(50, 20)
+  .setValue(viewport_show_alpha)
+  .setLabel("alpha / none")
+  .setMode(ControlP5.SWITCH)
+  .setId(-1)
+  ;
 
-  xoff += cp5.getController("viewport_show_alpha").getWidth() + 10;  
+  xoff += toggle_view_bg.getWidth() + 10;
   button_ip = cp5.addButton("button_ip")
-    .setPosition(xoff, yoff)
-    .setSize(70, 20)
-    .setLabel("ip: " + ip)
-    .setSwitch(false)
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(70, 20)
+  .setLabel("ip: " + ip)
+  .setSwitch(false)
+  .setId(-1)
+  ;
 
   xoff += button_ip.getWidth() + 10;
   field_osc_port = cp5.addTextfield("field_osc_port")
-    .setPosition(xoff, yoff)
-    .setSize(30, 20)
-    .setAutoClear(false)
-    .setText(Integer.toString(port))
-    .setLabel("osc port")
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(30, 20)
+  .setAutoClear(false)
+  .setText(Integer.toString(port))
+  .setLabel("osc port")
+  .setId(-1)
+  ;
 
-  xoff += field_osc_port.getWidth() + 10;  
+  xoff += field_osc_port.getWidth() + 10;
   field_osc_address = cp5.addTextfield("field_osc_address")
-    .setPosition(xoff, yoff)
-    .setSize(50, 20)
-    .setAutoClear(false)
-    .setText(syphon_name)
-    .setLabel("osc address")
-    ;
+  .setPosition(xoff, yoff)
+  .setSize(50, 20)
+  .setAutoClear(false)
+  .setText(syphon_name)
+  .setLabel("osc address")
+  .setId(-1)
+  ;
 
   xoff += field_osc_address.getWidth() + 10;
-  cp5.addToggle("log_osc")
-    .setPosition(xoff, yoff)
-    .setSize(30, 20)
-    .setLabel("log osc")
-    .setValue(true)
-    ;
+  toggle_log_osc = cp5.addToggle("log_osc")
+  .setPosition(xoff, yoff)
+  .setSize(30, 20)
+  .setLabel("log osc")
+  .setValue(true)
+  .setId(-1)
+  ;
 
   xoff = (int)button_ip.getPosition()[0];
   yoff += 40;
-  cp5.addScrollableList("dropdown_midi")
-    .setPosition(xoff, yoff)
-    .setSize(100, 100)
-    .setOpen(false)
-    .setBarHeight(20)
-    .setItemHeight(20)
-    .addItems(Arrays.asList(midi_devices))
-    .setLabel("MIDI INPUT")
-    // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
-    ;
+  dropdown_midi = cp5.addScrollableList("dropdown_midi")
+  .setPosition(xoff, yoff)
+  .setSize(100, 100)
+  .setOpen(false)
+  .setBarHeight(20)
+  .setItemHeight(20)
+  .addItems(Arrays.asList(midi_devices))
+  .setLabel("MIDI INPUT")
+  .setId(-1)
+  // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
+  ;
 
-  xoff += cp5.getController("dropdown_midi").getWidth() + 10;
-  cp5.addToggle("log_midi")
-    .setPosition(xoff, yoff)
-    .setSize(30, 20)
-    .setLabel("log midi")
-    .setValue(true)
-    ;
+  xoff += dropdown_midi.getWidth() + 10;
+  toggle_log_midi = cp5.addToggle("log_midi")
+  .setPosition(xoff, yoff)
+  .setSize(30, 20)
+  .setLabel("log midi")
+  .setValue(true)
+  .setId(-1)
+  ;
 
   /*  CUSTOM CONTROLS
-      Add your own controls below. Use .setId(1) to make controller
-      reachable by OSC.
+  Add your own controls below. Use .setId(-1) to make controller
+  unreachable by OSC.
   */
   xoff = 10;
   yoff = 300;
@@ -118,7 +129,7 @@ int evalFieldInput1(String in, int current, Controller con) {
     if (input.length == check) {
       int verified_int = Integer.parseInt(in);
       txt = name + " changed from " + current + " to " + verified_int;
-      if (verified_int < 1) { 
+      if (verified_int < 1) {
         verified_int = 1;
         txt = name + " was lower than 0 and defaults to " + verified_int;
       }
@@ -137,25 +148,25 @@ boolean evalFieldInput2(String in, String current, Controller con) {
   String name = con.getLabel();
   String txt = "input to " + name + " is unchanged";
   boolean out = true;
-  char[] illegal_chars = {'/', ',', '.', '(', ')', '[', ']', 
-    '{', '}', ' '
-  };
-  char[] input = in.toCharArray();
-  if (!in.equals(current)) {
-    if (input.length > 0) {
-      for (char ch : input) {
-        for (char i : illegal_chars) {
-          if (ch == i) {
-            txt = "input to " + name + " contained illegal character and was reset";
-            out = false;
-          }
+  char[] illegal_chars = {'/', ',', '.', '(', ')', '[', ']',
+  '{', '}', ' '
+};
+char[] input = in.toCharArray();
+if (!in.equals(current)) {
+  if (input.length > 0) {
+    for (char ch : input) {
+      for (char i : illegal_chars) {
+        if (ch == i) {
+          txt = "input to " + name + " contained illegal character and was reset";
+          out = false;
         }
       }
     }
   }
-  log.setText(txt);
+}
+log.setText(txt);
 
-  return out;
+return out;
 }
 
 public void field_cw(String theText) {
@@ -179,14 +190,16 @@ public void field_syphon_name(String input) {
     field_osc_address.setText(input);
     osc_address = input;
     log.setText("syphon name and osc address set to " + input);
-  } else field_syphon_name.setText(syphon_name);
+  }
+  else field_syphon_name.setText(syphon_name);
 }
 
 public void field_osc_address(String input) {
   if (evalFieldInput2(input, osc_address, field_osc_address)) {
     syphon_name = input;
     log.setText("osc address set to " + input);
-  } else field_osc_address.setText(osc_address);
+  }
+  else field_osc_address.setText(osc_address);
 }
 
 void dropdown_midi(int n) {
