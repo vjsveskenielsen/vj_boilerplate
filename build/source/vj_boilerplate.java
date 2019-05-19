@@ -45,9 +45,10 @@ MidiBus midi;
 String[] midi_devices;
 OscP5 oscP5;
 ControlP5 cp5;
+CallbackListener cb;
 Textfield field_cw, field_ch, field_syphon_name, field_osc_port, field_osc_address;
 Button button_ip;
-ScrollableList dropdown_midi;
+ScrollableList dropdown_midi, client_list;
 Toggle toggle_log_osc, toggle_log_midi, toggle_view_bg;
 Viewport view;
 boolean viewport_show_alpha = false;
@@ -60,6 +61,7 @@ PGraphics c;
 int cw = 1280, ch = 720;
 
 SyphonServer syphonserver;
+SyphonClient active_client;
 String syphon_name = "boilerplate", osc_address = syphon_name;
 Log log;
 
@@ -82,15 +84,25 @@ public void setup() {
 
 public void draw() {
   background(127);
+  noStroke();
+  fill(100);
+  rect(0, 0, width, 55);
+  fill(cp5.getTab("output/syphon").getColor().getBackground());
+  rect(0, 0, width, cp5.getTab("output/syphon").getHeight());
+
+
   drawGraphics();
-  view.display(c, 50, 50);
+  view.display(c, 60, 50);
   syphonserver.sendImage(c);
   log.update();
 }
 
 public void drawGraphics() {
   c.beginDraw();
-  c.clear();
+  if (!active_client.active()) c.clear();
+  else if (active_client.newFrame()) {
+    c.image(active_client.getGraphics(c), 0,0);
+  }
 
   c.endDraw();
 }
@@ -208,7 +220,32 @@ public void updateCanvas(int w, int h) {
 public void controlSetup() {
   cp5 = new ControlP5(this);
   int xoff = 10;
-  int yoff = 10;
+  int yoff = 20;
+
+  cb = new CallbackListener() {
+    public void controlEvent(CallbackEvent theEvent) {
+      switch(theEvent.getAction()) {
+        case(ControlP5.ACTION_ENTER):
+        cursor(HAND);
+        break;
+        case(ControlP5.ACTION_LEAVE):
+        case(ControlP5.ACTION_RELEASEDOUTSIDE):
+        cursor(ARROW);
+        break;
+      }
+    }
+  };
+
+  cp5.getTab("default")
+  .setAlwaysActive(true)
+  .hideBar()
+  .setWidth(-3)
+  ;
+  //hide default bar
+  cp5.addTab("output/syphon").setActive(true);
+
+  cp5.addTab("osc/midi")
+  ;
 
   field_cw = cp5.addTextfield("field_cw")
   .setPosition(xoff, yoff)
@@ -217,6 +254,7 @@ public void controlSetup() {
   .setText(Integer.toString(cw))
   .setLabel("width")
   .setId(-1)
+  .moveTo("output/syphon")
   ;
 
   xoff += field_cw.getWidth() + 10;
@@ -227,9 +265,30 @@ public void controlSetup() {
   .setText(Integer.toString(ch))
   .setLabel("height")
   .setId(-1)
+  .moveTo("output/syphon")
   ;
 
   xoff += field_ch.getWidth() + 10;
+  client_list = cp5.addScrollableList("client_list")
+  .setPosition(xoff, yoff)
+  .setSize(60, 100)
+  .setBarHeight(20)
+  .setItemHeight(20)
+  .moveTo("output/syphon")
+  .setOpen(false)
+  .setLabel("syphon input")
+  .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
+  ;
+  client_list.addCallback(new CallbackListener() {
+    public void controlEvent(CallbackEvent theEvent) {
+      if (theEvent.getAction()==ControlP5.ACTION_RELEASE && !client_list.isOpen()) {
+        updateSyphonClients();
+      }
+    }
+  }
+  );
+
+  xoff += cp5.getController("client_list").getWidth() + 10;
   field_syphon_name = cp5.addTextfield("field_syphon_name")
   .setPosition(xoff, yoff)
   .setSize(60, 20)
@@ -237,6 +296,7 @@ public void controlSetup() {
   .setText(syphon_name)
   .setLabel("syphon name")
   .setId(-1)
+  .moveTo("output/syphon")
   ;
 
   xoff += field_syphon_name.getWidth() + 10;
@@ -247,15 +307,17 @@ public void controlSetup() {
   .setLabel("alpha / none")
   .setMode(ControlP5.SWITCH)
   .setId(-1)
+  .moveTo("output/syphon")
   ;
 
-  xoff += toggle_view_bg.getWidth() + 10;
+  xoff = 10; //reset position for tab "osc/midi"
   button_ip = cp5.addButton("button_ip")
   .setPosition(xoff, yoff)
   .setSize(70, 20)
   .setLabel("ip: " + ip)
   .setSwitch(false)
   .setId(-1)
+  .moveTo("osc/midi")
   ;
 
   xoff += button_ip.getWidth() + 10;
@@ -266,6 +328,7 @@ public void controlSetup() {
   .setText(Integer.toString(port))
   .setLabel("osc port")
   .setId(-1)
+  .moveTo("osc/midi")
   ;
 
   xoff += field_osc_port.getWidth() + 10;
@@ -276,6 +339,7 @@ public void controlSetup() {
   .setText(syphon_name)
   .setLabel("osc address")
   .setId(-1)
+  .moveTo("osc/midi")
   ;
 
   xoff += field_osc_address.getWidth() + 10;
@@ -285,20 +349,21 @@ public void controlSetup() {
   .setLabel("log osc")
   .setValue(true)
   .setId(-1)
+  .moveTo("osc/midi")
   ;
 
-  xoff = (int)button_ip.getPosition()[0];
-  yoff += 40;
+  xoff += toggle_log_osc.getWidth() + 10;
   dropdown_midi = cp5.addScrollableList("dropdown_midi")
   .setPosition(xoff, yoff)
-  .setSize(100, 100)
+  .setSize(200, 100)
   .setOpen(false)
   .setBarHeight(20)
   .setItemHeight(20)
   .addItems(Arrays.asList(midi_devices))
   .setLabel("MIDI INPUT")
   .setId(-1)
-  // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
+  .moveTo("osc/midi")
+  .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
   ;
 
   xoff += dropdown_midi.getWidth() + 10;
@@ -308,11 +373,16 @@ public void controlSetup() {
   .setLabel("log midi")
   .setValue(true)
   .setId(-1)
+  .moveTo("osc/midi")
   ;
 
+  updateSyphonClients();
+  client_list(0);
+  //active_client = (SyphonClient)client_list.getItem("no input").get("value");
+
   /*  CUSTOM CONTROLS
-  Add your own controls below. Use .setId(1) to make controller
-  reachable by OSC.
+  Add your own controls below. Use .setId(-1) to make controller
+  unreachable by OSC.
   */
   xoff = 10;
   yoff = 300;
@@ -356,24 +426,24 @@ public boolean evalFieldInput2(String in, String current, Controller con) {
   String txt = "input to " + name + " is unchanged";
   boolean out = true;
   char[] illegal_chars = {'/', ',', '.', '(', ')', '[', ']',
-  '{', '}', ' '
-};
-char[] input = in.toCharArray();
-if (!in.equals(current)) {
-  if (input.length > 0) {
-    for (char ch : input) {
-      for (char i : illegal_chars) {
-        if (ch == i) {
-          txt = "input to " + name + " contained illegal character and was reset";
-          out = false;
+  '{', '}', ' '};
+  char[] input = in.toCharArray();
+  if (!in.equals(current)) {
+    if (input.length > 0) {
+      for (char ch : input) {
+        for (char i : illegal_chars) {
+          if (ch == i) {
+            txt = "input to " + name + " contained illegal character and was reset";
+            out = false;
+          }
         }
       }
     }
   }
-}
-log.setText(txt);
 
-return out;
+  log.setText(txt);
+
+  return out;
 }
 
 public void field_cw(String theText) {
@@ -432,6 +502,32 @@ public void button_ip() {
   updateIP();
   log.setText("ip adress has been updated to " + ip);
 }
+
+public void client_list(int n) {
+  active_client = (SyphonClient)client_list.getItem(n).get("value");
+  if (n == 0) {
+    active_client.stop();
+
+  }
+  client_list.setLabel((String)client_list.getItem(n).get("name"));
+  client_list.close();
+}
+
+public void updateSyphonClients() {
+  client_list.clear();
+
+  HashMap<String, String>[] hm_array = SyphonClient.listServers();
+
+  SyphonClient t_client;
+  String a_name, s_name;
+  client_list.addItem("no input", new SyphonClient(this, ""));
+  for (int i = 0; i < SyphonClient.listServers().length; i++) {
+    s_name = hm_array[i].get("ServerName");
+    a_name = hm_array[i].get("AppName");
+    t_client = new SyphonClient(this, a_name, s_name);
+    client_list.addItem(a_name + " " + s_name, t_client);
+  }
+}
 public void noteOn(int channel, int pitch, int velocity) {
   if (log_midi) log.setText("Note On // Channel:"+channel + " // Pitch:"+pitch + " // Velocity:"+velocity);
 }
@@ -470,7 +566,7 @@ public void oscEvent(OscMessage theOscMessage) {
   if (str_in.length == 3) {
     if (str_in[1].equals(osc_address) &&
       cp5.getController(str_in[2]) != null &&
-      cp5.getController(str_in[2]).getId() == 1) {
+      cp5.getController(str_in[2]).getId() != -1) {
       Controller con = cp5.getController(str_in[2]);
 
       if (theOscMessage.checkTypetag("i")) {
