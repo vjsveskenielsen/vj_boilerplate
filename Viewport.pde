@@ -24,20 +24,11 @@ class Viewport {
   }
 
   void resize(PGraphics pg) {
-    float aspect = 1.;
-    view_w = view_size;
-    view_h = view_size;
-    view_off_w = 0;
-    view_off_h = 0;
-
-    aspect = float( min(pg.width, pg.height)) / float( max(pg.width, pg.height));
-    if (pg.width > pg.height) {
-      view_h *= aspect;
-      view_off_h = (view_size-view_h)/2;
-    } else if (pg.height > pg.width) { 
-      view_w *= aspect;
-      view_off_w = (view_size-view_w)/2;
-    }
+    int[] dims = scaleToFit(pg.width, pg.height, view_size, view_size);
+    view_off_w = dims[0];
+    view_off_h = dims[1];
+    view_w = dims[2];
+    view_h =dims[3];
     bg = createAlphaBackground(view_w, view_h);
   }
 
@@ -84,4 +75,39 @@ void updateCanvas() {
 void updateCanvas(int w, int h) {
   c = createGraphics(w, h, P3D);
   view.resize(c);
+}
+
+int[] scaleToFill(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the largest for scaling
+   the output dimensions to FILL the destination
+   */
+  float scale = max(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
+}
+
+int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the SMALLEST for scaling
+   the output dimensions to FIT the destination
+   */
+  float scale = min(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+  println(off_x, off_y);
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
 }
