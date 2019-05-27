@@ -8,7 +8,7 @@ It relies on:
 The Syphon library by Andres Colubri
 The Midibus library by Severin Smith
 oscP5 and controlP5 by Andreas Schlegel
- */
+*/
 import codeanticode.syphon.*;
 import controlP5.*;
 import themidibus.*;
@@ -33,11 +33,12 @@ boolean log_midi = true, log_osc = true;
 int port = 9999;
 String ip;
 
-PGraphics c;
+PGraphics c, c_input;
 int cw = 1280, ch = 720;
 
 SyphonServer syphonserver;
-SyphonClient active_client;
+SyphonClient[] syphon_clients;
+int syphon_clients_index = -1;
 String syphon_name = "boilerplate", osc_address = syphon_name;
 Log log;
 
@@ -53,6 +54,7 @@ void setup() {
   updateOSC(port);
 
   c = createGraphics(cw, ch, P3D);
+  c_input = createGraphics(0,0,P3D);
   view = new Viewport(c, 400);
   syphonserver = new SyphonServer(this, syphon_name);
   view.resize(c);
@@ -75,10 +77,19 @@ void draw() {
 
 void drawGraphics() {
   c.beginDraw();
-  if (!active_client.active()) c.clear();
-  else if (active_client.newFrame()) {
-    c.image(active_client.getGraphics(c), 0,0);
+  if (receiveSyphonInput()){
+    c_input = syphon_clients[syphon_clients_index].getGraphics(c_input);
+    c.image(c_input, 0,0,c_input.width, c_input.height);
   }
 
   c.endDraw();
+}
+
+boolean receiveSyphonInput() {
+  boolean out = false;
+  //println(syphon_clients_index);
+  if (syphon_clients_index > -1 && syphon_clients[syphon_clients_index].newFrame()) {
+    out = true;
+  }
+  return out;
 }

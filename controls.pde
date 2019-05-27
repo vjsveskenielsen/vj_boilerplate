@@ -161,7 +161,8 @@ void controlSetup() {
   ;
 
   updateSyphonClients();
-  client_list(0);
+  int t = client_list.getItems().size();
+
   //active_client = (SyphonClient)client_list.getItem("no input").get("value");
 
   /*  CUSTOM CONTROLS
@@ -288,12 +289,9 @@ public void button_ip() {
 }
 
 void client_list(int n) {
-  active_client = (SyphonClient)client_list.getItem(n).get("value");
-  if (n == 0) {
-    active_client.stop();
-
-  }
-  client_list.setLabel((String)client_list.getItem(n).get("name"));
+  println(n);
+  syphon_clients_index = n;
+  //client_list.setLabel((String)client_list.getItem(n).get("name"));
   client_list.close();
 }
 
@@ -302,13 +300,12 @@ void updateSyphonClients() {
 
   HashMap<String, String>[] hm_array = SyphonClient.listServers();
 
-  SyphonClient t_client;
+  syphon_clients = new SyphonClient[SyphonClient.listServers().length];
   String a_name, s_name;
-  client_list.addItem("no input", new SyphonClient(this, ""));
   for (int i = 0; i < SyphonClient.listServers().length; i++) {
     s_name = hm_array[i].get("ServerName");
     a_name = hm_array[i].get("AppName");
-    t_client = new SyphonClient(this, a_name, s_name);
-    client_list.addItem(a_name + " " + s_name, t_client);
+    client_list.addItem(a_name + " " + s_name, 0);
   }
+  client_list.addItem("no input", -1);
 }

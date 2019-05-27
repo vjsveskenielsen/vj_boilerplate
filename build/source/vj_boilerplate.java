@@ -32,7 +32,7 @@ It relies on:
 The Syphon library by Andres Colubri
 The Midibus library by Severin Smith
 oscP5 and controlP5 by Andreas Schlegel
- */
+*/
 
 
 
@@ -57,11 +57,12 @@ boolean log_midi = true, log_osc = true;
 int port = 9999;
 String ip;
 
-PGraphics c;
+PGraphics c, c_input;
 int cw = 1280, ch = 720;
 
 SyphonServer syphonserver;
-SyphonClient active_client;
+SyphonClient[] syphon_clients;
+int syphon_clients_index = -1;
 String syphon_name = "boilerplate", osc_address = syphon_name;
 Log log;
 
@@ -77,6 +78,7 @@ public void setup() {
   updateOSC(port);
 
   c = createGraphics(cw, ch, P3D);
+  c_input = createGraphics(0,0,P3D);
   view = new Viewport(c, 400);
   syphonserver = new SyphonServer(this, syphon_name);
   view.resize(c);
@@ -99,12 +101,21 @@ public void draw() {
 
 public void drawGraphics() {
   c.beginDraw();
-  if (!active_client.active()) c.clear();
-  else if (active_client.newFrame()) {
-    c.image(active_client.getGraphics(c), 0,0);
+  if (receiveSyphonInput()){
+    c_input = syphon_clients[syphon_clients_index].getGraphics(c_input);
+    c.image(c_input, 0,0,c_input.width, c_input.height);
   }
 
   c.endDraw();
+}
+
+public boolean receiveSyphonInput() {
+  boolean out = false;
+  println(syphon_clients_index);
+  if (syphon_clients_index > -1 && syphon_clients[syphon_clients_index].newFrame()) {
+    out = true;
+  }
+  return out;
 }
 class Log {
   String current_log;
@@ -156,20 +167,11 @@ class Viewport {
   }
 
   public void resize(PGraphics pg) {
-    float aspect = 1.f;
-    view_w = view_size;
-    view_h = view_size;
-    view_off_w = 0;
-    view_off_h = 0;
-
-    aspect = PApplet.parseFloat( min(pg.width, pg.height)) / PApplet.parseFloat( max(pg.width, pg.height));
-    if (pg.width > pg.height) {
-      view_h *= aspect;
-      view_off_h = (view_size-view_h)/2;
-    } else if (pg.height > pg.width) { 
-      view_w *= aspect;
-      view_off_w = (view_size-view_w)/2;
-    }
+    int[] dims = scaleToFit(pg.width, pg.height, view_size, view_size);
+    view_off_w = dims[0];
+    view_off_h = dims[1];
+    view_w = dims[2];
+    view_h =dims[3];
     bg = createAlphaBackground(view_w, view_h);
   }
 
@@ -216,6 +218,41 @@ public void updateCanvas() {
 public void updateCanvas(int w, int h) {
   c = createGraphics(w, h, P3D);
   view.resize(c);
+}
+
+public int[] scaleToFill(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the largest for scaling
+   the output dimensions to FILL the destination
+   */
+  float scale = max(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
+}
+
+public int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the SMALLEST for scaling
+   the output dimensions to FIT the destination
+   */
+  float scale = min(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+  println(off_x, off_y);
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
 }
 public void controlSetup() {
   cp5 = new ControlP5(this);
@@ -283,6 +320,9 @@ public void controlSetup() {
     public void controlEvent(CallbackEvent theEvent) {
       if (theEvent.getAction()==ControlP5.ACTION_RELEASE && !client_list.isOpen()) {
         updateSyphonClients();
+      }
+      else if (theEvent.getAction() == ControlP5.ACTION_RELEASEDOUTSIDE) {
+        client_list.close();
       }
     }
   }
@@ -377,7 +417,8 @@ public void controlSetup() {
   ;
 
   updateSyphonClients();
-  client_list(0);
+  int t = client_list.getItems().size();
+
   //active_client = (SyphonClient)client_list.getItem("no input").get("value");
 
   /*  CUSTOM CONTROLS
@@ -504,12 +545,9 @@ public void button_ip() {
 }
 
 public void client_list(int n) {
-  active_client = (SyphonClient)client_list.getItem(n).get("value");
-  if (n == 0) {
-    active_client.stop();
-
-  }
-  client_list.setLabel((String)client_list.getItem(n).get("name"));
+  println(n);
+  syphon_clients_index = n;
+  //client_list.setLabel((String)client_list.getItem(n).get("name"));
   client_list.close();
 }
 
@@ -518,15 +556,14 @@ public void updateSyphonClients() {
 
   HashMap<String, String>[] hm_array = SyphonClient.listServers();
 
-  SyphonClient t_client;
+  syphon_clients = new SyphonClient[SyphonClient.listServers().length];
   String a_name, s_name;
-  client_list.addItem("no input", new SyphonClient(this, ""));
   for (int i = 0; i < SyphonClient.listServers().length; i++) {
     s_name = hm_array[i].get("ServerName");
     a_name = hm_array[i].get("AppName");
-    t_client = new SyphonClient(this, a_name, s_name);
-    client_list.addItem(a_name + " " + s_name, t_client);
+    client_list.addItem(a_name + " " + s_name, 0);
   }
+  client_list.addItem("no input", -1);
 }
 public void noteOn(int channel, int pitch, int velocity) {
   if (log_midi) log.setText("Note On // Channel:"+channel + " // Pitch:"+pitch + " // Velocity:"+velocity);
