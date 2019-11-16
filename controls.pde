@@ -50,7 +50,7 @@ void controlSetup() {
   ;
 
   xoff += field_ch.getWidth() + 10;
-  client_list = cp5.addScrollableList("client_list")
+  dropdown_syphon_client = cp5.addScrollableList("dropdown_syphon_client")
   .setPosition(xoff, yoff)
   .setSize(60, 100)
   .setBarHeight(20)
@@ -60,19 +60,22 @@ void controlSetup() {
   .setLabel("syphon input")
   .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
   ;
-  client_list.addCallback(new CallbackListener() {
+  dropdown_syphon_client.addCallback(new CallbackListener() {
     public void controlEvent(CallbackEvent theEvent) {
-      if (theEvent.getAction()==ControlP5.ACTION_RELEASE && !client_list.isOpen()) {
+      /*
+      if (theEvent.getAction()==ControlP5.ACTION_RELEASE && !dropdown_syphon_client.isOpen()) {
         updateSyphonClients();
       }
-      else if (theEvent.getAction() == ControlP5.ACTION_RELEASEDOUTSIDE) {
-        client_list.close();
+      else
+*/
+      if (theEvent.getAction() == ControlP5.ACTION_RELEASEDOUTSIDE) {
+        dropdown_syphon_client.close();
       }
     }
   }
   );
 
-  xoff += cp5.getController("client_list").getWidth() + 10;
+  xoff += cp5.getController("dropdown_syphon_client").getWidth() + 10;
   field_syphon_name = cp5.addTextfield("field_syphon_name")
   .setPosition(xoff, yoff)
   .setSize(60, 20)
@@ -160,11 +163,6 @@ void controlSetup() {
   .moveTo("osc/midi")
   ;
 
-  updateSyphonClients();
-  int t = client_list.getItems().size();
-
-  //active_client = (SyphonClient)client_list.getItem("no input").get("value");
-
   /*  CUSTOM CONTROLS
   Add your own controls below. Use .setId(-1) to make controller
   unreachable by OSC.
@@ -173,6 +171,7 @@ void controlSetup() {
   yoff = 300;
 }
 
+// checks if input is 4 digits
 int evalFieldInput1(String in, int current, Controller con) {
   String name = con.getLabel();
   int out = -1;
@@ -206,6 +205,7 @@ int evalFieldInput1(String in, int current, Controller con) {
   return out;
 }
 
+// checks if input is valid string for osc path
 boolean evalFieldInput2(String in, String current, Controller con) {
   String name = con.getLabel();
   String txt = "input to " + name + " is unchanged";
@@ -287,25 +287,34 @@ public void button_ip() {
   updateIP();
   log.setText("ip adress has been updated to " + ip);
 }
+/* syphon input wip
+void dropdown_syphon_client(int n) {
 
-void client_list(int n) {
-  println(n);
-  syphon_clients_index = n;
-  //client_list.setLabel((String)client_list.getItem(n).get("name"));
-  client_list.close();
+  println("//////// dropdown syphon clients /////");
+  println("dropdown index:", n);
+  println("dropdown syphon client name:", (String)dropdown_syphon_client.getItem(n).get("name"));
+  println("dropdown syphon client value:", (int)dropdown_syphon_client.getItem(n).get("value"));
+
+  syphon_clients_index = (int)dropdown_syphon_client.getItem(n).get("value");
+  dropdown_syphon_client.setLabel((String)dropdown_syphon_client.getItem(n).get("name"));
+  dropdown_syphon_client.close();
 }
 
 void updateSyphonClients() {
-  client_list.clear();
+  dropdown_syphon_client.clear();
 
   HashMap<String, String>[] hm_array = SyphonClient.listServers();
 
   syphon_clients = new SyphonClient[SyphonClient.listServers().length];
   String a_name, s_name;
+  println(SyphonClient.listServers());
+  println("adding syphon inputs to dropdown");
   for (int i = 0; i < SyphonClient.listServers().length; i++) {
     s_name = hm_array[i].get("ServerName");
     a_name = hm_array[i].get("AppName");
-    client_list.addItem(a_name + " " + s_name, 0);
+    dropdown_syphon_client.addItem(a_name + " " + s_name, i);
+    println("syphon client added:", a_name + " " + s_name, "#", i);
   }
-  client_list.addItem("no input", -1);
+  dropdown_syphon_client.addItem("no input", -1);
 }
+*/

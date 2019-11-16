@@ -14,8 +14,9 @@ void oscEvent(OscMessage theOscMessage) {
   String txt = "got osc message: " + theOscMessage.addrPattern();
   if (str_in.length == 3) {
     if (str_in[1].equals(osc_address) &&
-      cp5.getController(str_in[2]) != null &&
-      cp5.getController(str_in[2]).getId() != -1) {
+    cp5.getController(str_in[2]) != null &&
+    cp5.getController(str_in[2]).getId() != -1)
+    {
       Controller con = cp5.getController(str_in[2]);
 
       if (theOscMessage.checkTypetag("i")) {
@@ -23,7 +24,9 @@ void oscEvent(OscMessage theOscMessage) {
         value = constrain(value, (int)con.getMin(), (int)con.getMax());
         con.setValue(value);
         txt += " int value: " + Integer.toString(value);
-      } else if (theOscMessage.checkTypetag("f")) {
+      }
+
+      else if (theOscMessage.checkTypetag("f")) {
         float value = theOscMessage.get(0).floatValue();
         value = constrain(value, con.getMin(), con.getMax());
         con.setValue(value);

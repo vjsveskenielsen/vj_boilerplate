@@ -16,9 +16,9 @@ class Log {
     current_log = time + " " + input;
   }
 }
-
+//function for formatting int values as strings: 1 becomes "01", 2 becomes "02"
 String zeroFormat(int input) {
-  String output = Integer.toString(input); 
+  String output = Integer.toString(input);
   if (input < 10) output = "0" + output;
   return output;
 }
