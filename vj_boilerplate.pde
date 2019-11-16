@@ -33,7 +33,7 @@ boolean log_midi = true, log_osc = true;
 int port = 9999;
 String ip;
 
-PGraphics c, c_input;
+PGraphics c;
 int cw = 1280, ch = 720;
 
 SyphonServer syphonserver;
@@ -52,10 +52,10 @@ void setup() {
   midi_devices = midi.availableInputs();
   controlSetup();
   updateOSC(port);
-
-  vp = new Viewport(c, 400, 50, 50);
-  syphonserver = new SyphonServer(this, syphon_name);
+  c = createGraphics(cw, ch, P3D);
+  vp = new Viewport(c, 400, 50, 70);
   vp.resize(c);
+  syphonserver = new SyphonServer(this, syphon_name);
 }
 
 void draw() {

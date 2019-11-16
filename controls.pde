@@ -50,6 +50,7 @@ void controlSetup() {
   ;
 
   xoff += field_ch.getWidth() + 10;
+  /*
   dropdown_syphon_client = cp5.addScrollableList("dropdown_syphon_client")
   .setPosition(xoff, yoff)
   .setSize(60, 100)
@@ -62,20 +63,20 @@ void controlSetup() {
   ;
   dropdown_syphon_client.addCallback(new CallbackListener() {
     public void controlEvent(CallbackEvent theEvent) {
-      /*
+
       if (theEvent.getAction()==ControlP5.ACTION_RELEASE && !dropdown_syphon_client.isOpen()) {
         updateSyphonClients();
       }
       else
-*/
+
       if (theEvent.getAction() == ControlP5.ACTION_RELEASEDOUTSIDE) {
         dropdown_syphon_client.close();
       }
     }
   }
   );
-
-  xoff += cp5.getController("dropdown_syphon_client").getWidth() + 10;
+  */
+  xoff += cp5.getController("field_ch").getWidth() + 10;
   field_syphon_name = cp5.addTextfield("field_syphon_name")
   .setPosition(xoff, yoff)
   .setSize(60, 20)
